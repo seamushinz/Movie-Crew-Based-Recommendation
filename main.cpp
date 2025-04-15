@@ -3,8 +3,14 @@
 int main() {
     crow::SimpleApp app;
     std::cout << "Current path: " << std::filesystem::current_path() << std::endl;
-
-    //I can't get this shit to work
+    /*read movies from file
+    //add to map:
+        //key: movie name, value: set{Director Name, Composer, Crew...etc.}
+    */
+    /*
+     *use max heap to make a list of the most simiilar movies
+     *using comparisons of the sets via intersection size of the sets
+     */
     // Set template directory (relative to executable's working directory)
     //crow::mustache::set_base("/Users/seamushinz/Documents/school/Project 3 DSA/templates");
 
