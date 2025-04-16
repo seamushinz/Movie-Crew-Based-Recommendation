@@ -1,12 +1,32 @@
 #include "crow.h"
+#include <iostream>
+#include <algorithm>
+#include <iterator>
+#include <unordered_map>
+#include <unordered_set>
+using namespace std;
 
 int main() {
     crow::SimpleApp app;
     std::cout << "Current path: " << std::filesystem::current_path() << std::endl;
+
+    unordered_map<string, unordered_set<string>> movies;
+    priority_queue<pair<int, string>> mostSimilar;
+    string selectedMovie;
     /*read movies from file
     //add to map:
         //key: movie name, value: set{Director Name, Composer, Crew...etc.}
     */
+    for (unordered_map<string, unordered_set<string>>::iterator it = movies.begin(); it != movies.end(); ++it){
+      set<string> intersection;
+      if (it->first != selectedMovie){
+        unordered_set<string> currentCrew = it->second;
+        set_intersection(movies[selectedMovie].begin(), movies[selectedMovie].end(),
+                         currentCrew.begin(), currentCrew.end(),
+                         inserter(intersection, intersection.begin()));
+        pair<int, string> similarityScore = {intersection.size(), it->first};
+        mostSimilar.push(similarityScore);
+    }
     /*
      *use max heap to make a list of the most simiilar movies
      *using comparisons of the sets via intersection size of the sets
