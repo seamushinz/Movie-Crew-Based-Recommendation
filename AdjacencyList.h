@@ -86,32 +86,26 @@ AdjacencyList::AdjacencyList() {
     }
     cout << "file completed reading" << endl;
     cout << "beginning adjacencyList build" << endl;
-    unordered_map<string, unordered_map<string, int>> edgeList;
+   for (const auto& movieCrew : movieToCrew) {
+    string movieID = movieCrew.first;
+    const unordered_set<string>& crewSet = movieCrew.second;
+    unordered_map<string, int> sharedCounts;
 
-    for (auto it = crewToMovies.begin(); it != crewToMovies.end(); ++it) {
-        vector<string> movieList(it->second.begin(), it->second.end());
-        int numMovies = movieList.size();
-
-        for (int i = 0; i < numMovies; ++i) {
-            string currMovie = movieList[i];
-            for (int j = i + 1; j < numMovies; ++j) {
-                string compareMovie = movieList[j];
-
-                edgeList[currMovie][compareMovie]++;
-                edgeList[compareMovie][currMovie]++;
-            }
+    for (const string& crew : crewSet) {
+        for (const string& otherMovie : crewToMovies[crew]) {
+            if (otherMovie == movieID) continue;
+            sharedCounts[otherMovie]++;
         }
     }
-    for (const auto& edge : edgeList) {
-        string movie = edge.first;
-        for (const auto& currentMovie : edge.second) {
-            string neighborMovie = currentMovie.first;
-            int sharedCrew = currentMovie.second;
 
-            this->adjacencyList[movie].emplace_back(neighborMovie, sharedCrew);
-        
-        }
+    for (const auto& other : sharedCounts) {
+        string otherMovie = other.first;
+        int count = other.second;
+        adjacencyList[movieID].emplace_back(otherMovie, count);
+        adjacencyList[otherMovie].emplace_back(movieID, count); // double edge for undirected adj list
     }
+}
+
     auto t2 = chrono::high_resolution_clock::now();
     cout << "Finished building adjacency list, size: " << adjacencyList.size() << endl;
     cout << "Processing took " << chrono::duration_cast<chrono::milliseconds>(t2 - t1).count() << " ms\n";
