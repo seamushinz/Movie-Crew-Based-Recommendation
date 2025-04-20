@@ -6,18 +6,24 @@
 #include <iostream>
 #include <algorithm>
 #include <iterator>
+#include <queue>
+#include <set>
+#include "AdjacencyList.h"
 using namespace std;
 
 int main() {
     crow::SimpleApp app;
     //read movie titles file
-    ifstream movieFile("../data/df_movies.csv");
+    ifstream movieFile("data/df_movies.csv");
     unordered_map<string, unordered_set<string>> movieIDToCastInfo;
     unordered_map<string, string> movieIDToTitle;
-    unordered_map<string, pair(double, int)> movieIDtoRating;
+    unordered_map<string, string> movieTitleToID;
+
+    unordered_map<string, pair<double, int>> movieIDtoRating;
     //reserve size for maps, since we know how big the map will be
     movieIDToCastInfo.reserve(247560);
     movieIDToTitle.reserve(247560);
+    movieTitleToID.reserve(247560);
     cout << "reading df_movies.csv..." << endl;
     string line;
     //format:
@@ -71,6 +77,7 @@ int main() {
             if (!crewID.empty()) {castIDs.insert(crewID);}
             movieIDToCastInfo[movieID] = castIDs;
             movieIDToTitle[movieID] = title;
+            movieTitleToID[title] = movieID;
         }
         movieFile.close();
     } else {
@@ -87,7 +94,7 @@ int main() {
     //read crew file
     unordered_map<string, string> crewIDtoName;
     crewIDtoName.reserve(844609);
-    ifstream crewFile("../data/df_names.csv");
+    ifstream crewFile("data/df_names.csv");
     /* format:
 nconst,primaryName,birthYear,deathYear,primaryProfession,knownForTitles
 nm0000001,Fred Astaire,1899.0,1987.0,"soundtrack,actor,miscellaneous","tt0053137,tt0050419,tt0072308,tt0043044"
@@ -134,24 +141,33 @@ nm0000001,Fred Astaire,1899.0,1987.0,"soundtrack,actor,miscellaneous","tt0053137
         }
     }
 
+    // cout << "testing adjacency list for the movie: Julius Caesar" << endl;
+    // AdjacencyList a = AdjacencyList();
+    // vector<string> similarMovies = a.findSimilar(movieIDToTitle["Julius Caesar"]);
+
+    // for (const auto& similar : similarMovies) {
+    //     cout << similar << ", ";
+    // }
+    // cout << endl;
+
     /*read movies from file
     //add to map:
     //key: movie name, value: set{Director Name, Composer, Crew...etc.}
     */
-    unordered_map<string, unordered_set<string>> movies;
-    priority_queue<pair<int, string>> mostSimilar;
-    string selectedMovie;
+    // unordered_map<string, unordered_set<string>> movies;
+    // priority_queue<pair<int, string>> mostSimilar;
+    // string selectedMovie;
 
-    for (unordered_map<string, unordered_set<string>>::iterator it = movies.begin(); it != movies.end(); ++it){
-      set<string> intersection;
-      if (it->first != selectedMovie){
-        unordered_set<string> currentCrew = it->second;
-        set_intersection(movies[selectedMovie].begin(), movies[selectedMovie].end(),
-                         currentCrew.begin(), currentCrew.end(),
-                         inserter(intersection, intersection.begin()));
-        pair<int, string> similarityScore = {intersection.size(), it->first};
-        mostSimilar.push(similarityScore);
-    }
+    // for (unordered_map<string, unordered_set<string>>::iterator it = movies.begin(); it != movies.end(); ++it){
+    //   set<string> intersection;
+    //   if (it->first != selectedMovie){
+    //     unordered_set<string> currentCrew = it->second;
+    //     set_intersection(movies[selectedMovie].begin(), movies[selectedMovie].end(),
+    //                      currentCrew.begin(), currentCrew.end(),
+    //                      inserter(intersection, intersection.begin()));
+    //     pair<int, string> similarityScore = {intersection.size(), it->first};
+    //     mostSimilar.push(similarityScore);
+    // }
     /*
      *use max heap to make a list of the most simiilar movies
      *using comparisons of the sets via intersection size of the sets
