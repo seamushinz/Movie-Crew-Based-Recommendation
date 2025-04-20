@@ -16,7 +16,7 @@ int main() {
     ifstream movieFile("data/df_movies.csv");
     unordered_map<string, unordered_set<string>> movieIDToCastInfo;
     unordered_map<string, string> movieIDToTitle;
-    unordered_map<string, pair(double, int)> movieIDtoRating;
+    //unordered_map<string, pair(double, int)> movieIDtoRating;
     //reserve size for maps, since we know how big the map will be
     movieIDToCastInfo.reserve(247560);
     movieIDToTitle.reserve(247560);
@@ -125,10 +125,31 @@ nm0000001,Fred Astaire,1899.0,1987.0,"soundtrack,actor,miscellaneous","tt0053137
         cerr << "Failed to open df_names.csv" << endl;
     }
     cout << "finished reading movie file, size: " << crewIDtoName.size() << endl;
-    cout << "sample:" << endl;
 
-    cout << "Cast of " << movieIDToTitle["tt0020403"] << ": " << endl;
-    unordered_set<string> castIDs = movieIDToCastInfo["tt0020403"];
+    /*read movies from file
+    //add to map:
+    //key: movie name, value: set{Director Name, Composer, Crew...etc.}
+    */
+    //test thing
+    //unordered_map<string, unordered_set<string>> movies;
+    priority_queue<pair<int, string>> mostSimilar;
+    string selectedMovie = "tt0020403";
+    //is there some algo we can use for this other than just a for loop
+    for (auto it = movieIDToCastInfo.begin(); it != movieIDToCastInfo.end(); ++it){
+      unordered_set<string> intersection;
+      if (it->first != selectedMovie){
+        unordered_set<string> currentCrew = it->second;
+        set_intersection(movieIDToCastInfo[selectedMovie].begin(), movieIDToCastInfo[selectedMovie].end(),
+                         currentCrew.begin(), currentCrew.end(),
+                         inserter(intersection, intersection.begin()));
+        pair<int, string> similarityScore = {intersection.size(), it->first};
+        mostSimilar.push(similarityScore);
+    }
+}
+    cout << mostSimilar.size() << endl;
+    cout << movieIDToTitle[mostSimilar.top().second] << " Score: " << mostSimilar.top().first << endl;
+    cout << movieIDToTitle[selectedMovie] << " has: " << endl;
+    unordered_set<string> castIDs = movieIDToCastInfo[selectedMovie];
     for (const string& castID : castIDs) {
         //check if exists
         if (crewIDtoName.count(castID)) {
@@ -137,24 +158,15 @@ nm0000001,Fred Astaire,1899.0,1987.0,"soundtrack,actor,miscellaneous","tt0053137
             cout << "Doesn't exist: " << castID << endl;
         }
     }
-
-    /*read movies from file
-    //add to map:
-    //key: movie name, value: set{Director Name, Composer, Crew...etc.}
-    */
-    unordered_map<string, unordered_set<string>> movies;
-    priority_queue<pair<int, string>> mostSimilar;
-    string selectedMovie;
-
-    for (unordered_map<string, unordered_set<string>>::iterator it = movies.begin(); it != movies.end(); ++it){
-      set<string> intersection;
-      if (it->first != selectedMovie){
-        unordered_set<string> currentCrew = it->second;
-        set_intersection(movies[selectedMovie].begin(), movies[selectedMovie].end(),
-                         currentCrew.begin(), currentCrew.end(),
-                         inserter(intersection, intersection.begin()));
-        pair<int, string> similarityScore = {intersection.size(), it->first};
-        mostSimilar.push(similarityScore);
+    cout << movieIDToTitle[mostSimilar.top().second] << " has: " << endl;
+    castIDs = movieIDToCastInfo[mostSimilar.top().second];
+    for (const string& castID : castIDs) {
+        //check if exists
+        if (crewIDtoName.count(castID)) {
+            cout << crewIDtoName[castID] << endl;
+        }else {
+            cout << "Doesn't exist: " << castID << endl;
+        }
     }
     /*
      *use max heap to make a list of the most simiilar movies
