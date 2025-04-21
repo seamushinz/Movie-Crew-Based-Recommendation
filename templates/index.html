@@ -65,7 +65,7 @@
           });
         } catch (err) {
           console.error('Fetch error:', err);
-          albumRow.innerHTML = `<p class="text-danger">Error fetching results.</p>`;
+          albumRow.innerHTML = `<p class="text-danger">Error fetching results. Please make sure you properly capitalize each letter in the film's title. Otherwise, the movie may be niche and contain no neighbors, or is not present in the iMDB dataset.</p>`;
         }
       });
     });

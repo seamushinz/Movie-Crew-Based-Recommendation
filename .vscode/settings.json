@@ -10,6 +10,10 @@
         "filesystem": "cpp",
         "string": "cpp",
         "vector": "cpp",
-        "sstream": "cpp"
+        "sstream": "cpp",
+        "algorithm": "cpp",
+        "random": "cpp",
+        "utility": "cpp",
+        "chrono": "cpp"
     }
 }

@@ -78,7 +78,7 @@ MovieInfo fetch_movie_data(const string& title)
             }
         }
     } catch (...) {
-        std::cerr << "Failed to parse TMDb response for: " << title << std::endl;
+        std::cerr << "Failed to parse TMDb response for: " << title << endl;
     }
 
     return info;
@@ -91,7 +91,7 @@ int main()
     crow::mustache::set_base("templates/");
 
     // Build Adjacency List
-    // AdjacencyList dataStruc = AdjacencyList();
+    AdjacencyList dataStruc = AdjacencyList();
 
     // Or build hashmap (choose which one works better and comment the other one out)
     // HashMap dataStruc = HashMap();
@@ -109,22 +109,20 @@ int main()
     // use API to match movie data to each movie title and return as a vector with title, synposis, and image
 
     CROW_ROUTE(app, "/search")
-    ([](const crow::request& req) {
+    ([&dataStruc](const crow::request& req) {
         auto movieParam = req.url_params.get("movie");
         if (!movieParam) {
             return crow::response(400, "Missing movie parameter");
         }
 
-        std::string query = movieParam;
-        std::cout << "[Search Received] " << query << std::endl;
+        string query = movieParam;
+        cout << "[Search Received] " << query << std::endl;
 
         // Dummy similar movies — replace with adjacency list or other logic later
 
         /// THIS IS WHERE WERE GONNA RETURN THE STRING OF SIMILAR MOVIES
         // SO INIITALIZE THE DATA STRUCTURE ON APP START, AND CALL THE DATA STRUCTURES HERE
-        std::vector<std::string> similarMovies = {
-            "Inception", "Meet The Parents", "The Matrix", "Ben Hur", "Arrival", "50 First Dates"
-        };
+        vector<string> similarMovies = dataStruc.findSimilar(query);
 
         // Build the response JSON array
         json resultJson;
