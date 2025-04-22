@@ -81,7 +81,7 @@ class HashMap {
             return b();
         }
     //returns the pair at the raw index no hashing
-        pair<t,b> getPairIndex(int i) {
+        optional<pair<t,b>> getPairIndex(int i) {
             return hashMap[i];
         }
         size_t getSize() const {
@@ -100,18 +100,21 @@ class HashMapImplementation {
     HashMap<string, unordered_set<string>> movieIDToCastInfo;
 
     HashMap<string, string> crewIDtoName;
-    vector<string> createSimilarityThing(string selectedMovieID);
+    const int similarMoviesToReturn = 10;
 public:
     explicit HashMapImplementation();
+    vector<string> createSimilarityThing(const string& selectedMovieID);
 };
 
-inline vector<string> HashMapImplementation::createSimilarityThing(string selectedMovieID) {
+inline vector<string> HashMapImplementation::createSimilarityThing(const string& selectedMovieID) {
     priority_queue<pair<int, string>> mostSimilar;
     unordered_set<string> selectedMovieCastInfo = movieIDToCastInfo.getValue(selectedMovieID);
     //is there some algo we can use for this other than just a for loop
     for (int i = 0; i < movieIDToCastInfo.getSize(); i++){
         unordered_set<string> intersection;
-        pair<string, unordered_set<string>> item = movieIDToCastInfo.getPairIndex(i);
+        auto thisMovieCastPair =  movieIDToCastInfo.getPairIndex(i);
+        if (!thisMovieCastPair.has_value()) {break;}
+        pair<string, unordered_set<string>> item = thisMovieCastPair.value();
         if (item.first != selectedMovieID){
             unordered_set<string> currentCrew = item.second;
             set_intersection(selectedMovieCastInfo.begin(), selectedMovieCastInfo.end(),
@@ -143,6 +146,14 @@ inline vector<string> HashMapImplementation::createSimilarityThing(string select
             cout << "Doesn't exist: " << castID << endl;
         }
     }
+    vector<string> mostSimilarMoviesNames;
+    //return a vector of 10 most similar movies
+    mostSimilarMoviesNames.reserve(similarMoviesToReturn);
+    for (int i = 0; i < similarMoviesToReturn; i++) {
+        mostSimilarMoviesNames.push_back(mostSimilar.top().second);
+        mostSimilar.pop();
+    }
+    return mostSimilarMoviesNames;
 }
 
 inline HashMapImplementation::HashMapImplementation() {

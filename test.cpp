@@ -2,7 +2,6 @@
 //#include "crow_all.h"
 #include <curl/curl.h>
 #include <nlohmann/json.hpp>
-
 #include "AdjacencyList.h"
 #include <vector>
 #include <iomanip>

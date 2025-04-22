@@ -17,6 +17,10 @@ int main() {
     HashMapImplementation hashMapVersion;
 
     //---------------- creating similarity map or something? ------------------------------------------------
+    vector<string> poo = hashMapVersion.createSimilarityThing("tt0064102");
+    for (const auto & i : poo) {
+        cout << i << endl;
+    }
     //---------------- adjacency list thing ------------------------------------------------
     AdjacencyList a = AdjacencyList();
     cout << "testing adjacency list for the movie: West Side Story" << endl;
