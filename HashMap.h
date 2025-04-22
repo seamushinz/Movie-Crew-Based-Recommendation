@@ -80,8 +80,15 @@ class HashMap {
             cout << "key not found: " << key << endl;
             return b();
         }
-        int getSize() {
+    //returns the pair at the raw index no hashing
+        pair<t,b> getPairIndex(int i) {
+            return hashMap[i];
+        }
+        size_t getSize() const {
             return size;
+        }
+        size_t getCapacity() const {
+            return capacity;
         }
 };
 
@@ -92,9 +99,51 @@ class HashMapImplementation {
     // key = ID, value = set of cast IDs
     HashMap<string, unordered_set<string>> movieIDToCastInfo;
 
+    HashMap<string, string> crewIDtoName;
+    vector<string> createSimilarityThing(string selectedMovieID);
 public:
     explicit HashMapImplementation();
 };
+
+inline vector<string> HashMapImplementation::createSimilarityThing(string selectedMovieID) {
+    priority_queue<pair<int, string>> mostSimilar;
+    unordered_set<string> selectedMovieCastInfo = movieIDToCastInfo.getValue(selectedMovieID);
+    //is there some algo we can use for this other than just a for loop
+    for (int i = 0; i < movieIDToCastInfo.getSize(); i++){
+        unordered_set<string> intersection;
+        pair<string, unordered_set<string>> item = movieIDToCastInfo.getPairIndex(i);
+        if (item.first != selectedMovieID){
+            unordered_set<string> currentCrew = item.second;
+            set_intersection(selectedMovieCastInfo.begin(), selectedMovieCastInfo.end(),
+                             currentCrew.begin(), currentCrew.end(),
+                             inserter(intersection, intersection.begin()));
+            pair<int, string> similarityScore = {intersection.size(), item.first};
+            mostSimilar.push(similarityScore);
+        }
+    }
+    cout << mostSimilar.size() << endl;
+    cout << movieIDToTitle.getValue(mostSimilar.top().second) << " Score: " << mostSimilar.top().first << endl;
+    cout << movieIDToTitle.getValue(selectedMovieID) << " has: " << endl;
+    unordered_set<string> castIDs = movieIDToCastInfo.getValue(selectedMovieID);
+    for (const string& castID : castIDs) {
+        //check if exists
+        if (crewIDtoName.getValue(castID).data()) {
+            cout << crewIDtoName.getValue(castID)<< endl;
+        }else {
+            cout << "Doesn't exist: " << castID << endl;
+        }
+    }
+    cout << movieIDToTitle.getValue(mostSimilar.top().second) << " has: " << endl;
+    castIDs = movieIDToCastInfo.getValue(mostSimilar.top().second);
+    for (const string& castID : castIDs) {
+        //check if exists
+        if (crewIDtoName.getValue(castID).data()) {
+            cout << crewIDtoName.getValue(castID) << endl;
+        }else {
+            cout << "Doesn't exist: " << castID << endl;
+        }
+    }
+}
 
 inline HashMapImplementation::HashMapImplementation() {
     //---------------- read movie titles file ----------------------------------------------------------------
@@ -159,10 +208,44 @@ inline HashMapImplementation::HashMapImplementation() {
         cerr << "Failed to open df_movies.csv" << endl;
     }
     cout << "finished reading movie file, size: " << movieIDToTitle.getSize() << endl;
+    cout << "sample:" << endl;
+    cout << "Movie title: "<< movieIDToTitle.getValue("tt0002031") << endl;
+    //---------------- read crew names file ----------------------------------------------------------------
+    ifstream crewFile("../data/df_names.csv");
+    /* format:
+nconst,primaryName,birthYear,deathYear,primaryProfession,knownForTitles
+nm0000001,Fred Astaire,1899.0,1987.0,"soundtrack,actor,miscellaneous","tt0053137,tt0050419,tt0072308,tt0043044"
+*/
+    line = "";
+    if (crewFile.is_open()) {
+        getline(crewFile, line); // skip header
+        while (getline(crewFile, line)) {
+            size_t start = 0, end = 0;
+            int col = 0;
+            string crewID, name;
+
+            while ((end = line.find(',', start)) != string::npos) {
+                string token = line.substr(start, end - start);
+                if (col == 0) {
+                    crewID = token;
+                } else if (col == 1) {
+                    name = token;
+                    break;
+                }
+                start = end + 1;
+                col++;
+            }
+            if (!crewID.empty() && !name.empty()) {
+                crewIDtoName.insert(crewID,name);
+            }
+        }
+        crewFile.close();
+    } else {
+        cerr << "Failed to open df_names.csv" << endl;
+    }
+    cout << "finished reading crew names file, size: " << crewIDtoName.getSize() << endl;
     auto t2 = chrono::high_resolution_clock::now();
     cout << "processing took " << chrono::duration_cast<chrono::milliseconds>(t2 - t1).count() << " ms\n";
 
-    cout << "sample:" << endl;
-    cout << "Movie title: "<< movieIDToTitle.getValue("tt0002031") << endl;
 
 }
