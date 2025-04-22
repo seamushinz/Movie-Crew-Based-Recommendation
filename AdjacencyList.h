@@ -60,7 +60,7 @@ AdjacencyList::AdjacencyList() {
     ifstream movieFile("data/df_movies.csv");
     cout << "loading df_movies.csv to map titles to their ID's ..." << endl;
     if (movieFile.is_open()) {
-        getline(movieFile, line); 
+        getline(movieFile, line);
         while (getline(movieFile, line)) {
             stringstream ss(line);
             string token;

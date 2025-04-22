@@ -3,7 +3,8 @@ project(Project_3_DSA)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(Project_3_DSA main.cpp)
+add_executable(Project_3_DSA main.cpp
+        HashMap.h)
 find_package(Crow)
 target_link_libraries(Project_3_DSA PUBLIC Crow::Crow)
 # Include Crow headers

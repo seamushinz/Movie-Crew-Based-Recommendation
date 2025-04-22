@@ -9,9 +9,7 @@ int main() {
 
     auto t1 = chrono::high_resolution_clock::now();
 
-
     vector<string> similarMovies = a.findSimilar("West Side Story");
-
 
     for (const auto& similar : similarMovies) {
         cout << similar << ", ";

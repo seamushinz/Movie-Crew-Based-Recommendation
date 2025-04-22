@@ -8,87 +8,16 @@
 #include <queue>
 #include <set>
 #include "AdjacencyList.h"
+#include "HashMap.h"
 using namespace std;
 
 int main() {
     crow::SimpleApp app;
-    //read movie titles file
-    ifstream movieFile("data/df_movies.csv");
-    unordered_map<string, unordered_set<string>> movieIDToCastInfo;
-    unordered_map<string, string> movieIDToTitle;
-    //unordered_map<string, pair(double, int)> movieIDtoRating;
-    //reserve size for maps, since we know how big the map will be
-    movieIDToCastInfo.reserve(247560);
-    movieIDToTitle.reserve(247560);
-    // movieTitleToID.reserve(247560);
-    cout << "reading df_movies.csv..." << endl;
-    string line;
-    //format:
-    /*
-,ID_title,titleType,primaryTitle,originalTitle,startYear,runtimeMinutes,genres,averageRating,numVotes,ID_crew,category,job,characters,director,writer
-0,tt0000009,movie,Miss Jerry,Miss Jerry,1894.0,45.0,Romance,5.3,88,nm0063086,actress,,"[""Miss Geraldine Holbrook (Miss Jerry)""]",nm0085156,nm0085156
-     */
-    //check processing time
-    auto t1 = chrono::high_resolution_clock::now();
-    if (movieFile.is_open()) {
-        getline(movieFile, line); //skip header
-        while (getline(movieFile, line)) {
-            size_t start = 0, end = 0;
-            int col = 0;
-            string movieID, title, crewID, directorID, writerID;
-            //need sets for intersection operations later
-            unordered_set<string> castIDs;
-            castIDs.reserve(3);
-            //this method of csv parsing is apparently faster than using getline()
-            while ((end = line.find(',', start)) != string::npos) {
-                string currentData = line.substr(start, end - start);
-                switch (col) {
-                    case 1:
-                        movieID = currentData;
-                    break;
-                    case 3:
-                        title = currentData;
-                    break;
-                    case 10:
-                        crewID = currentData;
-                    break;
-                    case 14:
-                        directorID = currentData;
-                    break;
-                    case 15:
-                        writerID = currentData;
-                    break;
-                    default:
-                        break;
-                }
-                start = end + 1;
-                col++;
-            }
-            // get last field if no trailing comma
-            if (col == 15) {
-                writerID = line.substr(start);
-            }
-
-            if (!directorID.empty()) {castIDs.insert(directorID);}
-            if (!writerID.empty()) {castIDs.insert(writerID);}
-            if (!crewID.empty()) {castIDs.insert(crewID);}
-            movieIDToCastInfo[movieID] = castIDs;
-            movieIDToTitle[movieID] = title;
-            // movieTitleToID[title] = movieID;
-        }
-        movieFile.close();
-    } else {
-        cerr << "Failed to open df_movies.csv" << endl;
-    }
-    cout << "finished reading movie file, size: " << movieIDToTitle.size() << endl;
-    auto t2 = chrono::high_resolution_clock::now();
-    cout << "processing took " << chrono::duration_cast<chrono::milliseconds>(t2 - t1).count() << " ms\n";
-
-    cout << "sample:" << endl;
-    cout << "Movie title: "<< movieIDToTitle["tt0020403"] << endl;
+    //---------------- read movie titles file ----------------------------------------------------------------
+    HashMapImplementation hashMapVersion;
 
     cout << "now reading df_names.csv..." << endl;
-    //read crew file
+    //------- read crew file --------------------------------------------------------------------------------
     unordered_map<string, string> crewIDtoName;
     crewIDtoName.reserve(844609);
     ifstream crewFile("data/df_names.csv");
@@ -96,7 +25,7 @@ int main() {
 nconst,primaryName,birthYear,deathYear,primaryProfession,knownForTitles
 nm0000001,Fred Astaire,1899.0,1987.0,"soundtrack,actor,miscellaneous","tt0053137,tt0050419,tt0072308,tt0043044"
 */
-    line = "";
+    string line = "";
     if (crewFile.is_open()) {
         getline(crewFile, line); // skip header
         while (getline(crewFile, line)) {
@@ -125,13 +54,15 @@ nm0000001,Fred Astaire,1899.0,1987.0,"soundtrack,actor,miscellaneous","tt0053137
         cerr << "Failed to open df_names.csv" << endl;
     }
     cout << "finished reading movie file, size: " << crewIDtoName.size() << endl;
+    //---------------- creating similarity map or something? ------------------------------------------------
 
     /*read movies from file
-    //add to map:
+    //add to mostSimialar map:
     //key: movie name, value: set{Director Name, Composer, Crew...etc.}
     */
     //test thing
     //unordered_map<string, unordered_set<string>> movies;
+    /*
     priority_queue<pair<int, string>> mostSimilar;
     string selectedMovie = "tt0020403";
     //is there some algo we can use for this other than just a for loop
@@ -168,6 +99,23 @@ nm0000001,Fred Astaire,1899.0,1987.0,"soundtrack,actor,miscellaneous","tt0053137
             cout << "Doesn't exist: " << castID << endl;
         }
     }
+
+    //---------------- adjacency list thing ------------------------------------------------
+    AdjacencyList a = AdjacencyList();
+    cout << "testing adjacency list for the movie: West Side Story" << endl;
+
+    auto adjacencyT1 = chrono::high_resolution_clock::now();
+
+    vector<string> similarMovies = a.findSimilar("West Side Story");
+
+    for (const auto& similar : similarMovies) {
+        cout << similar << ", ";
+    }
+    cout << endl;
+    cout << "time for show of shows" << endl;
+    auto adjacencyT2 = chrono::high_resolution_clock::now();
+    cout << "Adjacency time: " << chrono::duration_cast<chrono::milliseconds>(adjacencyT2 - adjacencyT1).count() << " ms" << endl;
+
     /*
      *use max heap to make a list of the most simiilar movies
      *using comparisons of the sets via intersection size of the sets
