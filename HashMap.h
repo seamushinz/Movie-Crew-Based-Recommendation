@@ -10,14 +10,14 @@ template <typename t, typename b>
 class HashMap {
     //use optional<> to tell which slots are empty more easily
     vector<optional<pair<t, b>>> hashMap;
-    const double load_factor = 0.6;
-    int size;
-    int capacity;
+    const double load_factor = 0.5;
+    size_t size;
+    size_t capacity;
 
     public:
         HashMap() {
             size = 0;
-            capacity = 1000;
+            capacity = 10;
             hashMap.resize(capacity);
         }
         int hash(const string& key) const {
@@ -31,17 +31,29 @@ class HashMap {
             return (sum) % capacity;
         }
         void rehash() {
+            //cout << "Current capacity before rehash: " << capacity << endl;
+            //cout << "Size: " << size << endl;
             vector<optional<pair<t,b>>> oldMap = hashMap;
             capacity *= 2;
+            cout << "Successfully copied oldMap, new size: "<< size << " capacity: " << capacity << endl;
             hashMap.clear();
             hashMap.resize(capacity);
             size = 0;
             for (int i = 0; i < oldMap.size(); i++) {
                 if (oldMap[i].has_value()) {
-                    insert(oldMap[i]->first, oldMap[i]->second);
+                    insertNoRehash(oldMap[i]->first, oldMap[i]->second);
                 }
             }
         }
+        void insertNoRehash(t key, b value) {
+            int index = hash(key);
+            while (hashMap[index].has_value()) {
+                index = (index + 1) % capacity;
+            }
+            hashMap[index] = {key, value};
+            size++;
+        }
+
         void insert(t key, b value) {
             //check if there's space
             if ((size+1.0)/capacity > load_factor) {
@@ -65,6 +77,7 @@ class HashMap {
                 }
                 index = (index + 1) % capacity;
             }
+            cout << "key not found: " << key << endl;
             return b();
         }
         int getSize() {
@@ -97,7 +110,7 @@ inline HashMapImplementation::HashMapImplementation() {
     auto t1 = chrono::high_resolution_clock::now();
     if (movieFile.is_open()) {
         getline(movieFile, line); //skip header
-        while (getline(movieFile, line)) {
+        while (getline(movieFile, line) && movieIDToTitle.getSize() < 600000) {
             size_t start = 0, end = 0;
             int col = 0;
             string movieID, title, crewID, directorID, writerID;
