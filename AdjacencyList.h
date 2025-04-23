@@ -163,8 +163,6 @@ AdjacencyList::AdjacencyList() {
         cout << "Failed to open name file: df_names.csv" << endl;
     }
 
-
-
     cout << "finished parsing df_names.csv and built edge list" << endl;
     auto t2 = chrono::high_resolution_clock::now();
     cout << "Total time: " << chrono::duration_cast<chrono::milliseconds>(t2 - t1).count() << " ms" << endl;
@@ -185,15 +183,11 @@ for (const auto& entry : edgeList) {
         adjacencyList[movieID].emplace_back(neighbor.first, neighbor.second);
     }
 }
-
-
     cout << "adjacency list built, size: " << adjacencyList.size() << endl;
 
-  
     auto t3 = chrono::high_resolution_clock::now();
     cout << "Total processing time building adjacency list: " << chrono::duration_cast<chrono::milliseconds>(t3 - t2).count() << " ms" << endl;
 }
-
 
 
 vector<string> AdjacencyList::findSimilar(string movie) {

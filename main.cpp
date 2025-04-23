@@ -17,7 +17,8 @@ int main() {
     HashMapImplementation hashMapVersion;
 
     //---------------- creating similarity map or something? ------------------------------------------------
-    vector<string> poo = hashMapVersion.createSimilarityThing("");
+    vector<string> poo = hashMapVersion.createSimilarityThing(hashMapVersion.resolveTitletoID("West Side Story"));
+    cout << "hash map similar movies: ";
     for (const auto & i : poo) {
         cout << i << endl;
     }
@@ -38,7 +39,7 @@ int main() {
     cout << "Adjacency time: " << chrono::duration_cast<chrono::milliseconds>(adjacencyT2 - adjacencyT1).count() << " ms" << endl;
 
     /*
-     *use max heap to make a list of the most simiilar movies
+     *use max heap to make a list of the most similar movies
      *using comparisons of the sets via intersection size of the sets
      */
     // Set template directory (relative to executable's working directory)

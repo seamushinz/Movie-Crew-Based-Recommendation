@@ -103,7 +103,7 @@ class HashMapImplementation {
     HashMap<string, unordered_set<string>> movieIDToCastInfo;
 
     HashMap<string, string> crewIDtoName;
-    const int similarMoviesToReturn = 10;
+    const int similarMoviesToReturn = 100;
     const int maxSize = 600000;
     const string pathToMovies = "../data/df_movies.csv";
     const string pathToNames = "../data/df_names.csv";
@@ -114,7 +114,7 @@ public:
 };
 
 inline string HashMapImplementation::resolveTitletoID(string title) {
-
+    return titleToMovieID.getValue(title);
 }
 
 inline vector<string> HashMapImplementation::createSimilarityThing(const string& selectedMovieID) {
@@ -131,13 +131,12 @@ inline vector<string> HashMapImplementation::createSimilarityThing(const string&
             set_intersection(selectedMovieCastInfo.begin(), selectedMovieCastInfo.end(),
                              currentCrew.begin(), currentCrew.end(),
                              inserter(intersection, intersection.begin()));
-            pair<int, string> similarityScore = {intersection.size(), item.first};
-            mostSimilar.push(similarityScore);
+            if (!intersection.empty()) {
+                mostSimilar.push({(int)intersection.size(), item.first});
+            }
         }
     }
-    cout << mostSimilar.size() << endl;
-    cout << movieIDToTitle.getValue(mostSimilar.top().second) << " Score: " << mostSimilar.top().first << endl;
-    cout << movieIDToTitle.getValue(selectedMovieID) << " has: " << endl;
+    cout << "most similar size: " << mostSimilar.size() << endl;
     unordered_set<string> castIDs = movieIDToCastInfo.getValue(selectedMovieID);
 
     for (const string& castID : castIDs) {
@@ -162,11 +161,12 @@ inline vector<string> HashMapImplementation::createSimilarityThing(const string&
     //return a vector of 10 most similar movies
     mostSimilarMoviesNames.reserve(similarMoviesToReturn);
     cout << "most similar movies: " << endl;
-    for (int i = 0; i < similarMoviesToReturn; i++) {
+    for (int i = 0; i < similarMoviesToReturn && ! mostSimilar.empty(); i++) {
         string thing = movieIDToTitle.getValue(mostSimilar.top().second);
         if (find(mostSimilarMoviesNames.begin(), mostSimilarMoviesNames.end(), thing) == mostSimilarMoviesNames.end()) {
             mostSimilarMoviesNames.push_back(thing);
         }
+        mostSimilar.pop();
     }
     return mostSimilarMoviesNames;
 }
