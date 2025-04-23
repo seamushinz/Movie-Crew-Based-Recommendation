@@ -1,7 +1,7 @@
+#pragma once
 #include <fstream>
 #include <vector>
 #include <unordered_set>
-#include <functional>
 #include <iostream>
 #include <string>
 using namespace std;
@@ -23,7 +23,7 @@ class HashMap {
         int hash(const string& key) const {
             //given movie ID as key
             //sum all ascii characters
-            //djb2 hash function?
+            //djb2 inspired hash function?
             int sum = 0;
             for (const char c : key) {
                 sum += (sum << 7) + c;
@@ -65,6 +65,9 @@ class HashMap {
             //linear probing for filled buckets
             while (hashMap[index].has_value()) {
                 //has wraparound
+                if (hashMap[index]->first == key) {
+                    hashMap[index]->second = value;
+                }
                 index = (index + 1) % capacity;
             }
             hashMap[index] = {key, value};
@@ -101,10 +104,18 @@ class HashMapImplementation {
 
     HashMap<string, string> crewIDtoName;
     const int similarMoviesToReturn = 10;
+    const int maxSize = 600000;
+    const string pathToMovies = "../data/df_movies.csv";
+    const string pathToNames = "../data/df_names.csv";
 public:
     explicit HashMapImplementation();
+    string resolveTitletoID(string title);
     vector<string> createSimilarityThing(const string& selectedMovieID);
 };
+
+inline string HashMapImplementation::resolveTitletoID(string title) {
+
+}
 
 inline vector<string> HashMapImplementation::createSimilarityThing(const string& selectedMovieID) {
     priority_queue<pair<int, string>> mostSimilar;
@@ -128,6 +139,7 @@ inline vector<string> HashMapImplementation::createSimilarityThing(const string&
     cout << movieIDToTitle.getValue(mostSimilar.top().second) << " Score: " << mostSimilar.top().first << endl;
     cout << movieIDToTitle.getValue(selectedMovieID) << " has: " << endl;
     unordered_set<string> castIDs = movieIDToCastInfo.getValue(selectedMovieID);
+
     for (const string& castID : castIDs) {
         //check if exists
         if (crewIDtoName.getValue(castID).data()) {
@@ -149,16 +161,20 @@ inline vector<string> HashMapImplementation::createSimilarityThing(const string&
     vector<string> mostSimilarMoviesNames;
     //return a vector of 10 most similar movies
     mostSimilarMoviesNames.reserve(similarMoviesToReturn);
+    cout << "most similar movies: " << endl;
     for (int i = 0; i < similarMoviesToReturn; i++) {
-        mostSimilarMoviesNames.push_back(mostSimilar.top().second);
-        mostSimilar.pop();
+        string thing = movieIDToTitle.getValue(mostSimilar.top().second);
+        if (find(mostSimilarMoviesNames.begin(), mostSimilarMoviesNames.end(), thing) == mostSimilarMoviesNames.end()) {
+            mostSimilarMoviesNames.push_back(thing);
+        }
     }
     return mostSimilarMoviesNames;
 }
 
+
 inline HashMapImplementation::HashMapImplementation() {
     //---------------- read movie titles file ----------------------------------------------------------------
-    ifstream movieFile("../data/df_movies.csv");
+    ifstream movieFile(pathToMovies);
     cout << "reading df_movies.csv..." << endl;
     string line;
     //format:
@@ -170,7 +186,7 @@ inline HashMapImplementation::HashMapImplementation() {
     auto t1 = chrono::high_resolution_clock::now();
     if (movieFile.is_open()) {
         getline(movieFile, line); //skip header
-        while (getline(movieFile, line) && movieIDToTitle.getSize() < 600000) {
+        while (getline(movieFile, line) && movieIDToTitle.getSize() < maxSize) {
             size_t start = 0, end = 0;
             int col = 0;
             string movieID, title, crewID, directorID, writerID;
@@ -222,7 +238,7 @@ inline HashMapImplementation::HashMapImplementation() {
     cout << "sample:" << endl;
     cout << "Movie title: "<< movieIDToTitle.getValue("tt0002031") << endl;
     //---------------- read crew names file ----------------------------------------------------------------
-    ifstream crewFile("../data/df_names.csv");
+    ifstream crewFile(pathToNames);
     /* format:
 nconst,primaryName,birthYear,deathYear,primaryProfession,knownForTitles
 nm0000001,Fred Astaire,1899.0,1987.0,"soundtrack,actor,miscellaneous","tt0053137,tt0050419,tt0072308,tt0043044"
@@ -257,6 +273,4 @@ nm0000001,Fred Astaire,1899.0,1987.0,"soundtrack,actor,miscellaneous","tt0053137
     cout << "finished reading crew names file, size: " << crewIDtoName.getSize() << endl;
     auto t2 = chrono::high_resolution_clock::now();
     cout << "processing took " << chrono::duration_cast<chrono::milliseconds>(t2 - t1).count() << " ms\n";
-
-
 }

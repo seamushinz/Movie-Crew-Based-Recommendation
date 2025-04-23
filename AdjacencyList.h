@@ -8,12 +8,11 @@
 #include <iostream>
 using namespace std;
 class AdjacencyList {
-    private:
         unordered_map<string, vector<pair<string, int>>> adjacencyList;
         unordered_map<string, string> movieIDtoTitle;
         unordered_map<string, vector<string>> movieTitletoIDs;
-
-
+        const string pathToMovies = "../data/df_movies.csv";
+        const string pathToNames = "../data/df_names.csv";
     public:
         AdjacencyList();
         vector<string> findSimilar(string movie);
@@ -57,7 +56,7 @@ AdjacencyList::AdjacencyList() {
     unordered_map<string, unordered_map<string, int>> edgeList;
     string line;
 
-    ifstream movieFile("data/df_movies.csv");
+    ifstream movieFile(pathToMovies);
     cout << "loading df_movies.csv to map titles to their ID's ..." << endl;
     if (movieFile.is_open()) {
         getline(movieFile, line);
@@ -86,7 +85,7 @@ AdjacencyList::AdjacencyList() {
 
     cout << "valid movies loaded: " << movieIDtoTitle.size() << endl;
 
-    ifstream nameFile("data/df_names.csv");
+    ifstream nameFile(pathToNames);
 
     cout << "opening file: df_names.csv" << endl;
     if (nameFile.is_open()) {

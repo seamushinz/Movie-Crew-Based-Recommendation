@@ -17,7 +17,7 @@ int main() {
     HashMapImplementation hashMapVersion;
 
     //---------------- creating similarity map or something? ------------------------------------------------
-    vector<string> poo = hashMapVersion.createSimilarityThing("tt0064102");
+    vector<string> poo = hashMapVersion.createSimilarityThing("");
     for (const auto & i : poo) {
         cout << i << endl;
     }
