@@ -1,64 +1,156 @@
 #include "crow.h"
-#include <fstream>
-#include <unordered_map>
-#include <unordered_set>
-#include <iostream>
-#include <algorithm>
-#include <iterator>
-#include <queue>
-#include <set>
+//#include "crow_all.h"
+#include <curl/curl.h>
+#include <nlohmann/json.hpp>
 #include "AdjacencyList.h"
-#include "HashMap.h"
+#include <vector>
+#include <iomanip>
+#include <sstream>
+
+using json = nlohmann::json;
+
+
 using namespace std;
+// cURL reference:
+// https://gist.github.com/alghanmi/c5d7b761b2c9ab199157?permalink_comment_id=2909349
+// https://www.reddit.com/r/programminghelp/comments/1jm30bp/c/
+static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp)
+{
+    ((std::string*)userp)->append((char*)contents, size * nmemb);
+    return size * nmemb;
+}
 
-int main() {
+// Movie data structure
+struct MovieInfo {
+    string title;
+    string synopsis;
+    string poster_url;
+    float rating = 0.0;
+
+};
+// Took me forever to figure out this json stuff, source: https://stackoverflow.com/questions/154536/encode-decode-urls-in-c
+
+
+string url_encode(const std::string &value) {
+    std::ostringstream escaped;
+    escaped.fill('0');
+    escaped << std::hex;
+
+    for (char c : value) {
+        // Keep alphanumeric and some other common characters
+        if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~') {
+            escaped << c;
+        } else {
+            escaped << '%' << std::setw(2) << int((unsigned char)c);
+        }
+    }
+
+    return escaped.str();
+}
+
+const std::string TMDB_API_KEY = "bd9a7f2333e55379da5f3cac6b56a8b3";
+
+// returns the movie info struct
+MovieInfo fetch_movie_data(const string& title)
+{
+    std::string readBuffer;
+    std::string encoded_title = url_encode(title);
+    std::string url = "https://api.themoviedb.org/3/search/movie?api_key=" + TMDB_API_KEY + "&query=" + encoded_title;
+
+    CURL* curl = curl_easy_init();
+    if (curl)
+    {
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+        CURLcode res = curl_easy_perform(curl);
+        curl_easy_cleanup(curl);
+    }
+
+    MovieInfo info;
+    info.title = title;
+    info.synopsis = "No synopsis available.";
+    info.poster_url = "https://via.placeholder.com/300x450?text=" + url_encode(title);
+
+    try {
+        auto json_response = json::parse(readBuffer);
+        if (!json_response["results"].empty()) {
+            const auto& result = json_response["results"][0];
+            if (result.contains("overview")) info.synopsis = result["overview"];
+            if (result.contains("poster_path")) {
+                info.poster_url = "https://image.tmdb.org/t/p/w500" + result["poster_path"].get<std::string>();
+            }
+                     if (result.contains("vote_average")) {
+                info.rating = result["vote_average"].get<float>();
+        }
+        }
+    } catch (...) {
+        std::cerr << "Failed to parse TMDb response for: " << title << endl;
+    }
+
+    return info;
+}
+
+
+int main()
+{
     crow::SimpleApp app;
-    //---------------- read movie titles file ----------------------------------------------------------------
-    auto hashMapT1 = chrono::high_resolution_clock::now();
-    HashMapImplementation hashMapVersion;
+    crow::mustache::set_base("templates/");
 
-    //---------------- creating similarity map ------------------------------------------------------
-    vector<string> similarHashMovies = hashMapVersion.createSimilarityThing(hashMapVersion.resolveTitletoID("West Side Story"));
-    cout << "hash map similar movies: ";
-    for (const auto & i : similarHashMovies) {
-        cout << i << ", ";
-    }
-    cout << endl;
-    auto hashMapT2 = chrono::high_resolution_clock::now();
+    // Build Adjacency List
+    AdjacencyList dataStruc = AdjacencyList();
 
-    cout << "Hash map time: " << chrono::duration_cast<chrono::milliseconds>(hashMapT2 - hashMapT1).count() << " ms" << endl;
+    // Or build hashmap (choose which one works better and comment the other one out)
+    // HashMap dataStruc = HashMap();
 
-    //---------------- adjacency list version  ------------------------------------------------
-    auto adjacencyT1 = chrono::high_resolution_clock::now();
+    //define your endpoint at the root directory
+    CROW_ROUTE(app, "/")([](){
+        auto page = crow::mustache::load_text("index.html");
+        return page;
+    });
 
-    AdjacencyList a = AdjacencyList();
-    cout << "testing adjacency list for the movie: West Side Story" << endl;
+    // if search was entered call the adjacency list or hashmap via dataStruc.findSimilar(string);
 
-    vector<string> similarMovies = a.findSimilar("West Side Story");
+    // recieve returned vector of movies
 
-    for (const auto& similar : similarMovies) {
-        cout << similar << ", ";
-    }
-    cout << endl;
-    cout << "time for show of shows" << endl;
-    auto adjacencyT2 = chrono::high_resolution_clock::now();
-    cout << "Adjacency time: " << chrono::duration_cast<chrono::milliseconds>(adjacencyT2 - adjacencyT1).count() << " ms" << endl;
+    // use API to match movie data to each movie title and return as a vector with title, synposis, and image
 
-    /*
-     *use max heap to make a list of the most similar movies
-     *using comparisons of the sets via intersection size of the sets
-     */
-    // Set template directory (relative to executable's working directory)
-    //crow::mustache::set_base("/Users/seamushinz/Documents/school/Project 3 DSA/templates");
+    CROW_ROUTE(app, "/search")
+    ([&dataStruc](const crow::request& req) {
+        auto movieParam = req.url_params.get("movie");
+        if (!movieParam) {
+            return crow::response(400, "Missing movie parameter");
+        }
 
+        string query = movieParam;
+        cout << "[Search Received] " << query << std::endl;
 
-    /*CROW_ROUTE(app, "/")([](){
-        // Use load() instead of load_text() for Mustache templates
-        auto page = crow::mustache::load_unsafe("testPage.html");
-        crow::mustache::context ctx;  // Add context even if empty
-        return page.render(ctx);
+        // Dummy similar movies — replace with adjacency list or other logic later
+
+        /// THIS IS WHERE WERE GONNA RETURN THE STRING OF SIMILAR MOVIES
+        // SO INIITALIZE THE DATA STRUCTURE ON APP START, AND CALL THE DATA STRUCTURES HERE
+        vector<string> similarMovies = dataStruc.findSimilar(query);
+
+        // Build the response JSON array
+        json resultJson;
+        resultJson["results"] = json::array();
+
+        for (const std::string& title : similarMovies) {
+            MovieInfo data = fetch_movie_data(title);
+
+            json movieJson;
+            movieJson["title"] = data.title;
+            movieJson["synopsis"] = data.synopsis;
+            movieJson["poster_url"] = data.poster_url;
+            movieJson["rating"] = data.rating;
+
+            resultJson["results"].push_back(movieJson);
+        }
+
+        // Convert to string and send it back
+        return crow::response{resultJson.dump()};
     });
 
     app.port(18080).multithreaded().run();
-    */
 }
+

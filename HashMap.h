@@ -35,7 +35,7 @@ class HashMap {
             //cout << "Size: " << size << endl;
             vector<optional<pair<t,b>>> oldMap = hashMap;
             capacity *= 2;
-            //cout << "Successfully copied oldMap, new size: "<< size << " capacity: " << capacity << endl;
+            cout << "Successfully copied oldMap, new size: "<< size << " capacity: " << capacity << endl;
             hashMap.clear();
             hashMap.resize(capacity);
             size = 0;
