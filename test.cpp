@@ -12,7 +12,9 @@ using json = nlohmann::json;
 
 
 using namespace std;
-
+// cURL reference: 
+// https://gist.github.com/alghanmi/c5d7b761b2c9ab199157?permalink_comment_id=2909349
+// https://www.reddit.com/r/programminghelp/comments/1jm30bp/c/
 static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp)
 {
     ((std::string*)userp)->append((char*)contents, size * nmemb);
@@ -24,7 +26,10 @@ struct MovieInfo {
     string title;
     string synopsis;
     string poster_url;
+    float rating = 0.0;
+
 };
+// Took me forever to figure out this json stuff, source: https://stackoverflow.com/questions/154536/encode-decode-urls-in-c
 
 
 string url_encode(const std::string &value) {
@@ -76,6 +81,9 @@ MovieInfo fetch_movie_data(const string& title)
             if (result.contains("poster_path")) {
                 info.poster_url = "https://image.tmdb.org/t/p/w500" + result["poster_path"].get<std::string>();
             }
+                     if (result.contains("vote_average")) {
+                info.rating = result["vote_average"].get<float>();
+        }
         }
     } catch (...) {
         std::cerr << "Failed to parse TMDb response for: " << title << endl;
@@ -135,6 +143,7 @@ int main()
             movieJson["title"] = data.title;
             movieJson["synopsis"] = data.synopsis;
             movieJson["poster_url"] = data.poster_url;
+            movieJson["rating"] = data.rating;
 
             resultJson["results"].push_back(movieJson);
         }

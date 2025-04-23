@@ -11,8 +11,8 @@ class AdjacencyList {
         unordered_map<string, vector<pair<string, int>>> adjacencyList;
         unordered_map<string, string> movieIDtoTitle;
         unordered_map<string, vector<string>> movieTitletoIDs;
-        const string pathToMovies = "../data/df_movies.csv";
-        const string pathToNames = "../data/df_names.csv";
+        const string pathToMovies = "data/df_movies.csv";
+        const string pathToNames = "data/df_names.csv";
     public:
         AdjacencyList();
         vector<string> findSimilar(string movie);
