@@ -48,6 +48,11 @@ class HashMap {
         void insertNoRehash(t key, b value) {
             int index = hash(key);
             while (hashMap[index].has_value()) {
+                //has wraparound
+                if (hashMap[index]->first == key) {
+                    hashMap[index]->second = value;
+                    break;
+                }
                 index = (index + 1) % capacity;
             }
             hashMap[index] = {key, value};
@@ -60,17 +65,18 @@ class HashMap {
                 //rehash and expand
                 rehash();
             }
-            size++;
             int index = hash(key);
             //linear probing for filled buckets
             while (hashMap[index].has_value()) {
                 //has wraparound
                 if (hashMap[index]->first == key) {
                     hashMap[index]->second = value;
+                    break;
                 }
                 index = (index + 1) % capacity;
             }
             hashMap[index] = {key, value};
+            size++;
         }
         b getValue(t key) {
             int index = hash(key);
@@ -122,17 +128,20 @@ inline vector<string> HashMapImplementation::createSimilarityThing(const string&
     unordered_set<string> selectedMovieCastInfo = movieIDToCastInfo.getValue(selectedMovieID);
     //is there some algo we can use for this other than just a for loop
     for (int i = 0; i < movieIDToCastInfo.getSize(); i++){
-        unordered_set<string> intersection;
         auto thisMovieCastPair =  movieIDToCastInfo.getPairIndex(i);
-        if (!thisMovieCastPair.has_value()) {break;}
+        if (!thisMovieCastPair.has_value()) { cout << i << " has no cast Info for some reason" << endl; continue; }
         pair<string, unordered_set<string>> item = thisMovieCastPair.value();
         if (item.first != selectedMovieID){
+            unordered_set<string> intersection;
             unordered_set<string> currentCrew = item.second;
-            set_intersection(selectedMovieCastInfo.begin(), selectedMovieCastInfo.end(),
-                             currentCrew.begin(), currentCrew.end(),
-                             inserter(intersection, intersection.begin()));
+            for (const string& id : selectedMovieCastInfo) {
+                if (currentCrew.find(id) != currentCrew.end()) {
+                    intersection.insert(id);
+                }
+            }
             if (!intersection.empty()) {
                 mostSimilar.push({(int)intersection.size(), item.first});
+                cout << "found a similarity!: " << intersection.size() << endl;
             }
         }
     }
@@ -186,7 +195,7 @@ inline HashMapImplementation::HashMapImplementation() {
     auto t1 = chrono::high_resolution_clock::now();
     if (movieFile.is_open()) {
         getline(movieFile, line); //skip header
-        while (getline(movieFile, line) && movieIDToTitle.getSize() < maxSize) {
+        while (getline(movieFile, line)) {
             size_t start = 0, end = 0;
             int col = 0;
             string movieID, title, crewID, directorID, writerID;
