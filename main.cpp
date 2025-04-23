@@ -14,19 +14,25 @@ using namespace std;
 int main() {
     crow::SimpleApp app;
     //---------------- read movie titles file ----------------------------------------------------------------
+    auto hashMapT1 = chrono::high_resolution_clock::now();
     HashMapImplementation hashMapVersion;
 
-    //---------------- creating similarity map or something? ------------------------------------------------
-    vector<string> poo = hashMapVersion.createSimilarityThing(hashMapVersion.resolveTitletoID("West Side Story"));
+    //---------------- creating similarity map ------------------------------------------------------
+    vector<string> similarHashMovies = hashMapVersion.createSimilarityThing(hashMapVersion.resolveTitletoID("West Side Story"));
     cout << "hash map similar movies: ";
-    for (const auto & i : poo) {
-        cout << i << endl;
+    for (const auto & i : similarHashMovies) {
+        cout << i << ", ";
     }
-    //---------------- adjacency list thing ------------------------------------------------
+    cout << endl;
+    auto hashMapT2 = chrono::high_resolution_clock::now();
+
+    cout << "Hash map time: " << chrono::duration_cast<chrono::milliseconds>(hashMapT2 - hashMapT1).count() << " ms" << endl;
+
+    //---------------- adjacency list version  ------------------------------------------------
+    auto adjacencyT1 = chrono::high_resolution_clock::now();
+
     AdjacencyList a = AdjacencyList();
     cout << "testing adjacency list for the movie: West Side Story" << endl;
-
-    auto adjacencyT1 = chrono::high_resolution_clock::now();
 
     vector<string> similarMovies = a.findSimilar("West Side Story");
 

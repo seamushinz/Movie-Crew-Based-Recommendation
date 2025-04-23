@@ -35,7 +35,7 @@ class HashMap {
             //cout << "Size: " << size << endl;
             vector<optional<pair<t,b>>> oldMap = hashMap;
             capacity *= 2;
-            cout << "Successfully copied oldMap, new size: "<< size << " capacity: " << capacity << endl;
+            //cout << "Successfully copied oldMap, new size: "<< size << " capacity: " << capacity << endl;
             hashMap.clear();
             hashMap.resize(capacity);
             size = 0;
@@ -145,9 +145,9 @@ inline vector<string> HashMapImplementation::createSimilarityThing(const string&
             }
         }
     }
-    cout << "most similar size: " << mostSimilar.size() << endl;
+    //cout << "most similar size: " << mostSimilar.size() << endl;
     unordered_set<string> castIDs = movieIDToCastInfo.getValue(selectedMovieID);
-
+    /*
     for (const string& castID : castIDs) {
         //check if exists
         if (crewIDtoName.getValue(castID).data()) {
@@ -166,10 +166,11 @@ inline vector<string> HashMapImplementation::createSimilarityThing(const string&
             cout << "Doesn't exist: " << castID << endl;
         }
     }
+    */
     vector<string> mostSimilarMoviesNames;
     //return a vector of 10 most similar movies
     mostSimilarMoviesNames.reserve(similarMoviesToReturn);
-    cout << "most similar movies: " << endl;
+    //cout << "most similar movies: " << endl;
     for (int i = 0; i < similarMoviesToReturn && ! mostSimilar.empty(); i++) {
         string thing = movieIDToTitle.getValue(mostSimilar.top().second);
         if (find(mostSimilarMoviesNames.begin(), mostSimilarMoviesNames.end(), thing) == mostSimilarMoviesNames.end()) {
